@@ -1,19 +1,10 @@
 import os
 import json
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from openai import OpenAI
 
 app = FastAPI()
-
-# Servir /static
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/")
-async def root():
-    return FileResponse("static/index.html")
 
 # Cliente OpenAI
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -25,7 +16,6 @@ with open("beers.json", "r", encoding="utf-8") as f:
 class ChatRequest(BaseModel):
     message: str
 
-# 👇 IMPORTANTE: SIN INDENTACIÓN, FUERA DE LA CLASE
 SYSTEM_PROMPT = (
     "Eres el sommelier oficial de cervezas del restaurante Lucky Luke. "
     "Usa SIEMPRE el JSON proporcionado para recomendar cervezas. "
@@ -39,12 +29,13 @@ SYSTEM_PROMPT = (
     "7) Cuando respondas, da siempre 1 recomendación + 1 alternativa del mismo estilo si existe."
 )
 
-
-
+@app.get("/")
+async def root():
+    return {"message": "LuckyBeer Bot API funcionando correctamente 🍺🔥🤠"}
 
 @app.post("/api/chat")
 async def chat(body: ChatRequest):
-    # Adjuntamos el catálogo de cervezas al mensaje
+
     beers_json_text = json.dumps(BEERS_DATA, ensure_ascii=False)
 
     response = client.responses.create(
